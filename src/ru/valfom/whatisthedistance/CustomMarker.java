@@ -5,9 +5,20 @@ import com.google.android.gms.maps.model.Polyline;
 
 public class CustomMarker {
 
+	private int id;
 	private Marker marker;
 	private Polyline polyline;
 	
+	public int getId() {
+		
+		return id;
+	}
+
+	public void setId(int id) {
+		
+		this.id = id;
+	}
+
 	public boolean isPolyline() {
 		
 		return (polyline == null) ? false : true;

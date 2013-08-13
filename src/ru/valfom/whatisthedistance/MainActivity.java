@@ -16,6 +16,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.GoogleMap.OnMapLongClickListener;
+import com.google.android.gms.maps.GoogleMap.OnMarkerDragListener;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
@@ -63,11 +64,13 @@ public class MainActivity extends FragmentActivity {
 			public void onMapLongClick(LatLng point) {
 				
 				Marker marker = map.addMarker(new MarkerOptions()
-						.position(point));
+						.position(point)
+						.draggable(true));
 				
 				CustomMarker customMarker = new CustomMarker();
 				
 				customMarker.setMarker(marker);
+				customMarker.setId(markers.size());
 				
 				if (markers.size() > 0) {
 					
@@ -77,8 +80,7 @@ public class MainActivity extends FragmentActivity {
 					Polyline polyline = map.addPolyline(new PolylineOptions()
 				    		.add(prevPoint, point)
 				    		.width(5)
-				    		.color(Color.RED)
-				    		);
+				    		.color(Color.RED));
 					
 					distance += calculateDistance(prevPoint.latitude, prevPoint.longitude, point.latitude, point.longitude);
 					
@@ -88,6 +90,71 @@ public class MainActivity extends FragmentActivity {
 				}
 				
 				markers.add(customMarker);
+			}
+		});
+        
+        map.setOnMarkerDragListener(new OnMarkerDragListener() {
+			
+			@Override
+			public void onMarkerDragStart(Marker marker) {}
+			
+			@Override
+			public void onMarkerDragEnd(Marker marker) {}
+			
+			@Override
+			public void onMarkerDrag(Marker marker) {
+				
+				for (CustomMarker customMarker : markers) {
+					
+					if (customMarker.getMarker().equals(marker)) {
+						
+						int id = customMarker.getId();
+						
+						if (id > 0) {
+							
+							CustomMarker prevCustomMarker = markers.get(id - 1);
+						
+							if (prevCustomMarker.isPolyline()) {
+								
+								Polyline polyline = prevCustomMarker.getPolyline();
+								
+								List<LatLng> points = polyline.getPoints();
+								
+								LatLng point1 = points.get(0);
+								
+								polyline.remove();
+								
+								Polyline polylineNew = map.addPolyline(new PolylineOptions()
+					    				.add(point1, marker.getPosition())
+					    				.width(5)
+					    				.color(Color.RED));
+								
+								prevCustomMarker.setPolyline(polylineNew);
+							}
+						}
+						
+						if (id < markers.size() - 1) {
+							
+								if (customMarker.isPolyline()) {
+								
+								Polyline polyline = customMarker.getPolyline();
+								
+								List<LatLng> points = polyline.getPoints();
+								
+								LatLng point2 = points.get(1);
+								
+								polyline.remove();
+								
+								Polyline polylineNew = map.addPolyline(new PolylineOptions()
+					    				.add(marker.getPosition(), point2)
+					    				.width(5)
+					    				.color(Color.RED));
+								
+								customMarker.setPolyline(polylineNew);
+							}
+						}
+					}
+				}
 			}
 		});
     }
