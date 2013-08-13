@@ -2,6 +2,12 @@
 <resources>
 
     <string name="app_name">What is the distance</string>
+    <string name="settings">Settings</string>
     <string name="action_settings">Settings</string>
-
+    <string name="default_value_distance">0.000</string>
+    <string name="message_on_exit">Press Back button again to exit</string>
+    <string name="settings_measurement_units">Measurement units</string>
+	<string name="settings_units_metric">Metric (km)</string>
+    <string name="settings_units_imperial">Imperial (ft)</string>
+    
 </resources>

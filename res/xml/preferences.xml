@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+    
+	<ListPreference
+	    android:key="lUnits"
+	    android:title="@string/settings_measurement_units"
+	    android:dialogTitle="@string/settings_measurement_units"
+	    android:defaultValue="@string/settings_units_metric"
+        android:entries="@array/measurement_units_options"
+        android:entryValues="@array/measurement_units_values"
+        android:summary="@string/settings_units_metric" />
+</PreferenceScreen>
