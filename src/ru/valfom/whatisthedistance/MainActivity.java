@@ -37,6 +37,8 @@ public class MainActivity extends FragmentActivity {
 	
 	private double distance;
 	private TextView tvDistance;
+	private TextView tvDistanceUnit;
+	private double ratio = 1000;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -46,6 +48,7 @@ public class MainActivity extends FragmentActivity {
 		setContentView(R.layout.activity_main);
 		
 		tvDistance = (TextView) findViewById(R.id.tvDistance);
+		tvDistanceUnit = (TextView) findViewById(R.id.tvDistanceUnit);
 		
 		setUpMapIfNeeded();
 	}
@@ -62,6 +65,21 @@ public class MainActivity extends FragmentActivity {
 		if (mapType.equals(getString(R.string.settings_normal))) map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
 		else if (mapType.equals(getString(R.string.settings_satellite))) map.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
 		else if (mapType.equals(getString(R.string.settings_hybrid))) map.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+		
+		String units = sharedPreferences.getString("lUnits", getString(R.string.km));
+		
+		if (units.equals(getString(R.string.km))) {
+			
+			tvDistanceUnit.setText(R.string.km);
+			ratio = 1000;
+			
+		} else if (units.equals(getString(R.string.mi))) {
+			
+			tvDistanceUnit.setText(R.string.mi);
+			ratio = 1609.344;
+		}
+		
+		tvDistance.setText(String.format("%.3f", distance / ratio));
 	}
 
 	private void setUpMapIfNeeded() {
@@ -103,7 +121,7 @@ public class MainActivity extends FragmentActivity {
 					
 					distance += curDistance;
 					
-					tvDistance.setText(String.format("%.3f", distance / 1000));
+					tvDistance.setText(String.format("%.3f", distance / ratio));
 					
 					prevMarker.setPolyline(polyline);
 					prevMarker.setDistance(curDistance);
@@ -195,7 +213,7 @@ public class MainActivity extends FragmentActivity {
 						if (prevDistance != null) distance += prevDistance;
 						if (nextDistance != null) distance += nextDistance;
 						
-						tvDistance.setText(String.format("%.3f", distance / 1000));
+						tvDistance.setText(String.format("%.3f", distance / ratio));
 						
 						break;
 					}
@@ -257,6 +275,7 @@ public class MainActivity extends FragmentActivity {
 			map.clear();
 			tvDistance.setText(getString(R.string.default_value_distance));
 			distance = 0;
+			markers.clear();
 			break;
 			
 		default:
