@@ -15,5 +15,6 @@
     <string name="settings_normal">Normal</string>
     <string name="settings_satellite">Satellite</string>
     <string name="settings_hybrid">Hybrid</string>
+    <string name="action_clear_map">Clear map</string>
     
 </resources>

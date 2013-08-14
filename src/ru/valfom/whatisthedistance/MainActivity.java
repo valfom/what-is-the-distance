@@ -253,6 +253,11 @@ public class MainActivity extends FragmentActivity {
 			Intent settings = new Intent(this, SettingsActivity.class);
 			startActivity(settings);
 			break;
+		case R.id.action_clear_map:
+			map.clear();
+			tvDistance.setText(getString(R.string.default_value_distance));
+			distance = 0;
+			break;
 			
 		default:
 			break;
