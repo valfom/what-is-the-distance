@@ -17,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMapLongClickListener;
 import com.google.android.gms.maps.GoogleMap.OnMarkerDragListener;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -39,6 +40,7 @@ public class MainActivity extends FragmentActivity {
 	private TextView tvDistance;
 	private TextView tvDistanceUnit;
 	private double ratio = 1000;
+	private boolean showMarkers = true;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -92,6 +94,20 @@ public class MainActivity extends FragmentActivity {
         map.setMapType(GoogleMap.MAP_TYPE_NONE);
         map.setMyLocationEnabled(true);
         
+        map.setOnMapClickListener(new OnMapClickListener() {
+			
+			@Override
+			public void onMapClick(LatLng point) {
+				
+				showMarkers = !showMarkers;
+				
+				for (CustomMarker customMarker : markers) {
+					
+					customMarker.getMarker().setVisible(showMarkers);
+				}
+			}
+		});
+        
         map.setOnMapLongClickListener(new OnMapLongClickListener() {
 			
 			@Override
@@ -99,7 +115,8 @@ public class MainActivity extends FragmentActivity {
 				
 				Marker marker = map.addMarker(new MarkerOptions()
 						.position(point)
-						.draggable(true));
+						.draggable(true)
+						.visible(showMarkers));
 				
 				CustomMarker customMarker = new CustomMarker();
 				
