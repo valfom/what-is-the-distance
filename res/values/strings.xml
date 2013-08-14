@@ -8,8 +8,12 @@
     <string name="message_on_exit">Press Back button again to exit</string>
     <string name="settings_measurement_units">Measurement units</string>
 	<string name="settings_units_metric">Metric (km)</string>
-    <string name="settings_units_imperial">Imperial (ft)</string>
+    <string name="settings_units_imperial">Imperial (mi)</string>
     <string name="km">km</string>
-    <string name="ft">ft</string>
+    <string name="mi">mi</string>
+    <string name="settings_map_type">Map type</string>
+    <string name="settings_normal">Normal</string>
+    <string name="settings_satellite">Satellite</string>
+    <string name="settings_hybrid">Hybrid</string>
     
 </resources>

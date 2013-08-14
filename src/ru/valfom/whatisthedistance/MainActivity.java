@@ -6,8 +6,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -48,6 +50,20 @@ public class MainActivity extends FragmentActivity {
 		setUpMapIfNeeded();
 	}
 	
+	@Override
+	protected void onResume() {
+
+		super.onResume();
+		
+		SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+		
+		String mapType = sharedPreferences.getString("lMapType", getString(R.string.settings_normal));
+		
+		if (mapType.equals(getString(R.string.settings_normal))) map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+		else if (mapType.equals(getString(R.string.settings_satellite))) map.setMapType(GoogleMap.MAP_TYPE_SATELLITE);
+		else if (mapType.equals(getString(R.string.settings_hybrid))) map.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+	}
+
 	private void setUpMapIfNeeded() {
 		
         if (map == null)
@@ -55,7 +71,7 @@ public class MainActivity extends FragmentActivity {
 
         if (map == null) return;
 
-        map.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+        map.setMapType(GoogleMap.MAP_TYPE_NONE);
         map.setMyLocationEnabled(true);
         
         map.setOnMapLongClickListener(new OnMapLongClickListener() {
@@ -74,6 +90,7 @@ public class MainActivity extends FragmentActivity {
 				
 				if (markers.size() > 0) {
 					
+					double curDistance;
 					CustomMarker prevMarker = markers.get(markers.size() - 1);
 					LatLng prevPoint = prevMarker.getMarker().getPosition();
 					
@@ -82,11 +99,14 @@ public class MainActivity extends FragmentActivity {
 				    		.width(5)
 				    		.color(Color.RED));
 					
-					distance += calculateDistance(prevPoint.latitude, prevPoint.longitude, point.latitude, point.longitude);
+					curDistance = calculateDistance(prevPoint.latitude, prevPoint.longitude, point.latitude, point.longitude);
+					
+					distance += curDistance;
 					
 					tvDistance.setText(String.format("%.3f", distance / 1000));
 					
 					prevMarker.setPolyline(polyline);
+					prevMarker.setDistance(curDistance);
 				}
 				
 				markers.add(customMarker);
@@ -108,6 +128,7 @@ public class MainActivity extends FragmentActivity {
 					
 					if (customMarker.getMarker().equals(marker)) {
 						
+						Double prevDistance = null, nextDistance = null;
 						int id = customMarker.getId();
 						
 						if (id > 0) {
@@ -120,16 +141,20 @@ public class MainActivity extends FragmentActivity {
 								
 								List<LatLng> points = polyline.getPoints();
 								
-								LatLng point1 = points.get(0);
+								LatLng prevPoint = points.get(0);
+								LatLng curPoint = marker.getPosition();
 								
 								polyline.remove();
 								
 								Polyline polylineNew = map.addPolyline(new PolylineOptions()
-					    				.add(point1, marker.getPosition())
+					    				.add(prevPoint, curPoint)
 					    				.width(5)
 					    				.color(Color.RED));
 								
+								prevDistance = calculateDistance(prevPoint.latitude, prevPoint.longitude, curPoint.latitude, curPoint.longitude);
+								
 								prevCustomMarker.setPolyline(polylineNew);
+								prevCustomMarker.setDistance(prevDistance);
 							}
 						}
 						
@@ -141,18 +166,38 @@ public class MainActivity extends FragmentActivity {
 								
 								List<LatLng> points = polyline.getPoints();
 								
-								LatLng point2 = points.get(1);
+								LatLng nextPoint = points.get(1);
+								LatLng curPoint = marker.getPosition();
 								
 								polyline.remove();
 								
 								Polyline polylineNew = map.addPolyline(new PolylineOptions()
-					    				.add(marker.getPosition(), point2)
+					    				.add(curPoint, nextPoint)
 					    				.width(5)
 					    				.color(Color.RED));
 								
+								nextDistance = calculateDistance(curPoint.latitude, curPoint.longitude, nextPoint.latitude, nextPoint.longitude);
+								
 								customMarker.setPolyline(polylineNew);
+								customMarker.setDistance(nextDistance);
 							}
 						}
+						
+						distance = 0;
+						
+						for (int i = 0; i < markers.size(); i++) {
+							
+							if ((i == (id - 1)) || (i == id)) continue;
+							
+							distance += markers.get(i).getDistance();
+						}
+						
+						if (prevDistance != null) distance += prevDistance;
+						if (nextDistance != null) distance += nextDistance;
+						
+						tvDistance.setText(String.format("%.3f", distance / 1000));
+						
+						break;
 					}
 				}
 			}

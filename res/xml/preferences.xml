@@ -9,4 +9,13 @@
         android:entries="@array/measurement_units_options"
         android:entryValues="@array/measurement_units_values"
         android:summary="@string/settings_units_metric" />
+	
+	<ListPreference
+	    android:key="lMapType"
+	    android:title="@string/settings_map_type"
+	    android:dialogTitle="@string/settings_map_type"
+	    android:defaultValue="@string/settings_normal"
+        android:entries="@array/map_type_options"
+        android:entryValues="@array/map_type_values"
+        android:summary="@string/settings_normal" />
 </PreferenceScreen>

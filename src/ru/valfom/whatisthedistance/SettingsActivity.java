@@ -13,8 +13,10 @@ import android.view.MenuItem;
 public class SettingsActivity extends PreferenceActivity implements OnSharedPreferenceChangeListener {
 
 	public static final String KEY_MEASUREMENT_UNITS = "lUnits";
+	public static final String KEY_MAP_TYPE = "lMapType";
 	
 	private ListPreference lMeasurementUnits;
+	private ListPreference lMapType;
 	
 	@SuppressLint("NewApi")
 	@SuppressWarnings("deprecation")
@@ -29,6 +31,7 @@ public class SettingsActivity extends PreferenceActivity implements OnSharedPref
 		addPreferencesFromResource(R.xml.preferences);
 		
 		lMeasurementUnits = (ListPreference) getPreferenceScreen().findPreference(KEY_MEASUREMENT_UNITS);
+		lMapType= (ListPreference) getPreferenceScreen().findPreference(KEY_MAP_TYPE);
 	}
 	
 	@SuppressWarnings("deprecation")
@@ -52,6 +55,8 @@ public class SettingsActivity extends PreferenceActivity implements OnSharedPref
 
         lMeasurementUnits.setSummary(sharedPreferences.getString(KEY_MEASUREMENT_UNITS, 
         		getString(R.string.settings_measurement_units)));
+        lMapType.setSummary(sharedPreferences.getString(KEY_MAP_TYPE, 
+        		getString(R.string.settings_normal)));
 	}
 	
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
@@ -60,6 +65,11 @@ public class SettingsActivity extends PreferenceActivity implements OnSharedPref
         	
     		lMeasurementUnits.setSummary(sharedPreferences.getString(KEY_MEASUREMENT_UNITS, 
             		getString(R.string.settings_measurement_units)));
+    		
+    	} else if (key.equals(KEY_MAP_TYPE)) {
+        	
+    		lMapType.setSummary(sharedPreferences.getString(KEY_MAP_TYPE, 
+            		getString(R.string.settings_normal)));
     	}
 	}
 	
@@ -69,9 +79,7 @@ public class SettingsActivity extends PreferenceActivity implements OnSharedPref
 		switch (item.getItemId()) {
         
 	        case android.R.id.home:
-
 	        	onBackPressed();
-
 	            return true;
 
 	        default:
