@@ -41,6 +41,8 @@ public class MainActivity extends FragmentActivity {
 	private TextView tvDistanceUnit;
 	private double ratio = 1000;
 	private boolean showMarkers = true;
+	
+	Marker tempMarker;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -154,7 +156,10 @@ public class MainActivity extends FragmentActivity {
         map.setOnMarkerDragListener(new OnMarkerDragListener() {
 			
 			@Override
-			public void onMarkerDragStart(Marker marker) {}
+			public void onMarkerDragStart(Marker marker) {
+				
+				onMarkerDrag(marker);
+			}
 			
 			@Override
 			public void onMarkerDragEnd(Marker marker) {}
