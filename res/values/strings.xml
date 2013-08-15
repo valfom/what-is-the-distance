@@ -16,5 +16,6 @@
     <string name="settings_satellite">Satellite</string>
     <string name="settings_hybrid">Hybrid</string>
     <string name="action_clear_map">Clear map</string>
+    <string name="action_delete_last_marker">Delete last marker</string>
     
 </resources>

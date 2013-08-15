@@ -99,11 +99,14 @@ public class MainActivity extends FragmentActivity {
 			@Override
 			public void onMapClick(LatLng point) {
 				
-				showMarkers = !showMarkers;
+				if (markers.size() > 1) {
 				
-				for (CustomMarker customMarker : markers) {
+					showMarkers = !showMarkers;
 					
-					customMarker.getMarker().setVisible(showMarkers);
+					for (CustomMarker customMarker : markers) {
+						
+						customMarker.getMarker().setVisible(showMarkers);
+					}
 				}
 			}
 		});
@@ -293,6 +296,38 @@ public class MainActivity extends FragmentActivity {
 			tvDistance.setText(getString(R.string.default_value_distance));
 			distance = 0;
 			markers.clear();
+			break;
+		case R.id.action_delete_last_marker:
+			
+			int markersCount = markers.size();
+			
+			if (markersCount == 1) {
+				
+				map.clear();
+				markers.clear();
+			} else if (markersCount > 1) {
+				
+				CustomMarker customMarker = markers.get(markersCount - 1);
+				customMarker.getMarker().remove();
+				markers.remove(markersCount - 1);
+				CustomMarker prevCustomMarker = markers.get(markers.size() - 1);
+				prevCustomMarker.getPolyline().remove();
+				distance -= prevCustomMarker.getDistance();
+				prevCustomMarker.setDistance(0);
+				
+				tvDistance.setText(String.format("%.3f", distance / ratio));
+			}
+			
+			if ((markers.size() <= 1) && !showMarkers) {
+				
+				showMarkers = true;
+				
+				for (CustomMarker customMarker : markers) {
+					
+					customMarker.getMarker().setVisible(showMarkers);
+				}
+			}
+			
 			break;
 			
 		default:
