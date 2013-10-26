@@ -4,9 +4,12 @@
     android:layout_height="match_parent" >
 
     <RelativeLayout
+        android:layout_alignParentTop="true"
         android:id="@+id/rlInformation"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" >
+        android:layout_height="wrap_content"
+        android:layout_margin="5dp"
+        android:padding="5dp" >
 
         <TextView
             android:id="@+id/tvDistance"
@@ -32,7 +35,7 @@
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="match_parent" 
         android:layout_below="@+id/rlInformation" />
 
 </RelativeLayout>

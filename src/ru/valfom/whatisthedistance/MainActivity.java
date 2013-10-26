@@ -1,13 +1,7 @@
 package ru.valfom.whatisthedistance;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.List;
-
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.v4.app.FragmentActivity;
@@ -24,26 +18,21 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polyline;
-import com.google.android.gms.maps.model.PolylineOptions;
 
 public class MainActivity extends FragmentActivity {
 
 	private GoogleMap map;
 	
-	private List<CustomMarker> markers = new ArrayList<CustomMarker>();
+	private TextView tvDistance;
+	private TextView tvDistanceUnit;
+	
+	private double ratio = 1000;
+	
+	private Path path;
 	
 	private long lastBackPressTime = 0;
 	private Toast toastOnExit;
 	
-	private double distance;
-	private TextView tvDistance;
-	private TextView tvDistanceUnit;
-	private double ratio = 1000;
-	private boolean showMarkers = true;
-	
-	Marker tempMarker;
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 
@@ -83,7 +72,7 @@ public class MainActivity extends FragmentActivity {
 			ratio = 1609.344;
 		}
 		
-		tvDistance.setText(String.format("%.3f", distance / ratio));
+		tvDistance.setText(String.format("%.3f", path.getDistance(ratio)));
 	}
 
 	private void setUpMapIfNeeded() {
@@ -92,7 +81,9 @@ public class MainActivity extends FragmentActivity {
         	map = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
 
         if (map == null) return;
-
+        
+        path = new Path(map);
+        
         map.setMapType(GoogleMap.MAP_TYPE_NONE);
         map.setMyLocationEnabled(true);
         
@@ -101,15 +92,14 @@ public class MainActivity extends FragmentActivity {
 			@Override
 			public void onMapClick(LatLng point) {
 				
-				if (markers.size() > 1) {
-				
-					showMarkers = !showMarkers;
-					
-					for (CustomMarker customMarker : markers) {
-						
-						customMarker.getMarker().setVisible(showMarkers);
-					}
-				}
+				Marker marker = map.addMarker(new MarkerOptions()
+						.position(point)
+						.draggable(true)
+						.visible(path.isShowMarkers()));
+		
+				path.addMarker(marker);
+		
+		tvDistance.setText(String.format("%.3f", path.getDistance(ratio)));
 			}
 		});
         
@@ -117,39 +107,8 @@ public class MainActivity extends FragmentActivity {
 			
 			@Override
 			public void onMapLongClick(LatLng point) {
-				
-				Marker marker = map.addMarker(new MarkerOptions()
-						.position(point)
-						.draggable(true)
-						.visible(showMarkers));
-				
-				CustomMarker customMarker = new CustomMarker();
-				
-				customMarker.setMarker(marker);
-				customMarker.setId(markers.size());
-				
-				if (markers.size() > 0) {
-					
-					double curDistance;
-					CustomMarker prevMarker = markers.get(markers.size() - 1);
-					LatLng prevPoint = prevMarker.getMarker().getPosition();
-					
-					Polyline polyline = map.addPolyline(new PolylineOptions()
-				    		.add(prevPoint, point)
-				    		.width(5)
-				    		.color(Color.RED));
-					
-					curDistance = calculateDistance(prevPoint.latitude, prevPoint.longitude, point.latitude, point.longitude);
-					
-					distance += curDistance;
-					
-					tvDistance.setText(String.format("%.3f", distance / ratio));
-					
-					prevMarker.setPolyline(polyline);
-					prevMarker.setDistance(curDistance);
-				}
-				
-				markers.add(customMarker);
+
+				path.changeMarkersVisibility();
 			}
 		});
         
@@ -167,117 +126,12 @@ public class MainActivity extends FragmentActivity {
 			@Override
 			public void onMarkerDrag(Marker marker) {
 				
-				for (CustomMarker customMarker : markers) {
-					
-					if (customMarker.getMarker().equals(marker)) {
-						
-						Double prevDistance = null, nextDistance = null;
-						int id = customMarker.getId();
-						
-						if (id > 0) {
-							
-							CustomMarker prevCustomMarker = markers.get(id - 1);
-						
-							if (prevCustomMarker.isPolyline()) {
-								
-								Polyline polyline = prevCustomMarker.getPolyline();
-								
-								List<LatLng> points = polyline.getPoints();
-								
-								LatLng prevPoint = points.get(0);
-								LatLng curPoint = marker.getPosition();
-								
-								polyline.remove();
-								
-								Polyline polylineNew = map.addPolyline(new PolylineOptions()
-					    				.add(prevPoint, curPoint)
-					    				.width(5)
-					    				.color(Color.RED));
-								
-								prevDistance = calculateDistance(prevPoint.latitude, prevPoint.longitude, curPoint.latitude, curPoint.longitude);
-								
-								prevCustomMarker.setPolyline(polylineNew);
-								prevCustomMarker.setDistance(prevDistance);
-							}
-						}
-						
-						if (id < markers.size() - 1) {
-							
-								if (customMarker.isPolyline()) {
-								
-								Polyline polyline = customMarker.getPolyline();
-								
-								List<LatLng> points = polyline.getPoints();
-								
-								LatLng nextPoint = points.get(1);
-								LatLng curPoint = marker.getPosition();
-								
-								polyline.remove();
-								
-								Polyline polylineNew = map.addPolyline(new PolylineOptions()
-					    				.add(curPoint, nextPoint)
-					    				.width(5)
-					    				.color(Color.RED));
-								
-								nextDistance = calculateDistance(curPoint.latitude, curPoint.longitude, nextPoint.latitude, nextPoint.longitude);
-								
-								customMarker.setPolyline(polylineNew);
-								customMarker.setDistance(nextDistance);
-							}
-						}
-						
-						distance = 0;
-						
-						for (int i = 0; i < markers.size(); i++) {
-							
-							if ((i == (id - 1)) || (i == id)) continue;
-							
-							distance += markers.get(i).getDistance();
-						}
-						
-						if (prevDistance != null) distance += prevDistance;
-						if (nextDistance != null) distance += nextDistance;
-						
-						tvDistance.setText(String.format("%.3f", distance / ratio));
-						
-						break;
-					}
-				}
+				path.changePoint(marker);
+				
+				tvDistance.setText(String.format("%.3f", path.getDistance(ratio)));
 			}
 		});
     }
-	
-	private double calculateDistance(double llat1, double llong1, double llat2, double llong2) {
-
-		// http://gis-lab.info/qa/great-circles.html
-
-		int rad = 6372795;
-
-		double lat1 = llat1 * Math.PI / 180;
-		double lat2 = llat2 * Math.PI / 180;
-		double long1 = llong1 * Math.PI / 180;
-		double long2 = llong2 * Math.PI / 180;
-
-		double cl1 = Math.cos(lat1);
-		double cl2 = Math.cos(lat2);
-		double sl1 = Math.sin(lat1);
-		double sl2 = Math.sin(lat2);
-		double delta = long2 - long1;
-		double cdelta = Math.cos(delta);
-		double sdelta = Math.sin(delta);
-
-		double y = Math.sqrt(Math.pow(cl2 * sdelta, 2) + Math.pow(cl1 * sl2 - sl1 * cl2 * cdelta, 2));
-		double x = sl1 * sl2 + cl1 * cl2 * cdelta;
-		double ad = Math.atan2(y, x);
-		double dist = ad * rad;
-
-		return dist;
-	}
-
-	public double round(double d, int p) {
-
-    	return new BigDecimal(d).setScale(p, RoundingMode.HALF_UP).doubleValue();
-	}
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -297,40 +151,21 @@ public class MainActivity extends FragmentActivity {
 			startActivity(settings);
 			break;
 		case R.id.action_clear_map:
-			map.clear();
-			tvDistance.setText(getString(R.string.default_value_distance));
-			distance = 0;
-			markers.clear();
+			clearMap();
 			break;
 		case R.id.action_delete_last_marker:
 			
-			int markersCount = markers.size();
+			int markersCount = path.getMarkersCount();
 			
 			if (markersCount == 1) {
 				
-				map.clear();
-				markers.clear();
+				clearMap();
+				
 			} else if (markersCount > 1) {
 				
-				CustomMarker customMarker = markers.get(markersCount - 1);
-				customMarker.getMarker().remove();
-				markers.remove(markersCount - 1);
-				CustomMarker prevCustomMarker = markers.get(markers.size() - 1);
-				prevCustomMarker.getPolyline().remove();
-				distance -= prevCustomMarker.getDistance();
-				prevCustomMarker.setDistance(0);
+				path.deleteLastMarker();
 				
-				tvDistance.setText(String.format("%.3f", distance / ratio));
-			}
-			
-			if ((markers.size() <= 1) && !showMarkers) {
-				
-				showMarkers = true;
-				
-				for (CustomMarker customMarker : markers) {
-					
-					customMarker.getMarker().setVisible(showMarkers);
-				}
+				tvDistance.setText(String.format("%.3f", path.getDistance(ratio)));
 			}
 			
 			break;
@@ -340,6 +175,13 @@ public class MainActivity extends FragmentActivity {
 		}
 
 		return true;
+	}
+	
+	public void clearMap() {
+		
+		map.clear();
+		tvDistance.setText(getString(R.string.default_value_distance));
+		path.clear();
 	}
 	
 	@Override
